@@ -1,0 +1,15 @@
+html {
+  filter: invert(1) hue-rotate(180deg) brightness(1.2);
+}
+
+.social-logins .social-logo:not(:hover) {
+  background-color: #c4ced9 !important;
+}
+
+.social-logins .social-title {
+  color: #333 !important;
+}
+
+.login-hero {
+  filter: invert(1) hue-rotate(180deg) brightness(0.8);
+}

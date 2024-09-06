@@ -1,5 +1,7 @@
 # Securly Plus
 
+![icon](src/icons/icon-128.png)
+
 Dark mode and QoL improvements for [Securly Flex](https://flex.securly.com/)
 
 most low effort extension on the chrome web store

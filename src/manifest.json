@@ -3,6 +3,7 @@
   "name": "Securly Plus",
   "description": "Dark mode and improvements for Securly Flex",
   "version": "0.1",
+  "host_permissions": ["*://flex.securly.com"],
   "content_scripts": [
     {
       "matches": ["*://flex.securly.com/*"],

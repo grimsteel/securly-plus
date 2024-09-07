@@ -16,4 +16,8 @@ for target in ${targets[@]}; do
 
   # merge manifests
   jq -s '.[0] * .[1]' src/manifest.json src/manifest.$target.json > build/$target/manifest.json
+
+  pushd build/$target/
+  zip -q -r ../$target.zip .
+  popd
 done

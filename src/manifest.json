@@ -10,7 +10,9 @@
       "css": ["dark-mode.css"]
     }
   ],
-  "options_page": "options/options.html",
+  "options_ui": {
+    "page": "options/options.html"
+  },
   "action": {
     "default_title": "Options"
   },

@@ -13,3 +13,21 @@ html.dark-mode .social-logins .social-title {
 html.dark-mode .login-hero {
   filter: invert(1) hue-rotate(180deg) brightness(0.8);
 }
+
+html.dark-mode .modal-backdrop {
+  background-color: #969696;
+}
+
+html.dark-mode .flex-period-header {
+  background-color: #ddd;
+}
+
+html.dark-mode .pill-tabs .nav-item.active .nav-link {
+  background-color: #3895f0;
+}
+
+html.dark-mode .btn-primary {
+  color: black;
+  background-color: #7bb6f0;
+  border-color: #7bb6f0;
+}

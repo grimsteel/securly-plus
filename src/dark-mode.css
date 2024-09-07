@@ -31,3 +31,7 @@ html.dark-mode .btn-primary {
   background-color: #7bb6f0;
   border-color: #7bb6f0;
 }
+
+html.dark-mode #mainMenu {
+  box-shadow: none;
+}

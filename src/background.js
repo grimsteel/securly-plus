@@ -3,7 +3,7 @@ chrome.action.onClicked.addListener(() => {
 });
 
 /**
- * @param {{ theme: string, defaultScreen: string }} preferences
+ * @param {{ theme: string, defaultScreen: string, defaultScheduleTab: string }} preferences
  */
 function contentScript(preferences) {
   // RUN ONCE
@@ -17,7 +17,7 @@ function contentScript(preferences) {
     month: 31
   };
 
-  const screenId = screenIdMap[preferences.defaultScreen] ?? screenIdMap.todayplus;
+  const screenId = screenIdMap[preferences.defaultScheduleTab] ?? screenIdMap.todayplus;
 
   // DARK MODE
   if (preferences.theme === "dark") {
@@ -85,6 +85,9 @@ function contentScript(preferences) {
                   if ("DefaultCalendarViewTabRoleMapping" in result) {
                     result.DefaultCalendarViewTabRoleMapping.student = screenId;
                   }
+                  if ("DefaultRouteUserRoleMapping" in result) {
+                    result.DefaultRouteUserRoleMapping.student = preferences.defaultScreen;
+                  }
                   return result;
                 };
                 return origDFunction(...dFunctionArgs);
@@ -110,7 +113,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   if (changeInfo.status  === "loading" && tab.url) {
     // get the user's preferences
     const prefs = await chrome.storage.local.get({
-      theme: "auto", defaultScreen: "todayplus"
+      theme: "auto", defaultScheduleTab: "todayplus", defaultScreen: "schedule"
     });
     
     // inject the content script as soon as the tab has started loading

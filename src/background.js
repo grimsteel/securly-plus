@@ -2,20 +2,57 @@ chrome.action.onClicked.addListener(() => {
   chrome.runtime.openOptionsPage();
 });
 
-function contentScript() {
+/**
+ * @param {{ theme: string, defaultScreen: string }} preferences
+ */
+function contentScript(preferences) {
+  // RUN ONCE
   if (window.__securlyPlus) return;
   window.__securlyPlus = true;
+
+  const screenIdMap = {
+    today: 1,
+    todayplus: 5,
+    week: 7,
+    month: 31
+  };
+
+  const screenId = screenIdMap[preferences.defaultScreen] ?? screenIdMap.todayplus;
+
+  // DARK MODE
+  if (preferences.theme === "dark") {
+    document.documentElement.classList.add("dark-mode");
+  } else if (preferences.theme === "auto") {
+    const prefersDark = matchMedia("(prefers-color-scheme: dark)");
+    if (prefersDark.matches) document.documentElement.classList.add("dark-mode");
+    prefersDark.addEventListener("change", e => {
+      document.documentElement.classList.toggle("dark-mode", e.matches);
+    });
+  }
+
+  // PATCH CONFIG
+  
+  // this needs to be changed every time securly flex gets an update
+  const configFunctionLocation = {
+    chunkId: 179,
+    functionId: 66626,
+    returnHook: "d",
+  };
+
   
   let webpackPush;
   let array = [];
+  // bind to the existing webpack chunk list if applicable
   if (window.webpackChunkeduspire) {
     array = window.webpackChunkeduspire;
     webpackPush = array.push;
   }
   window.webpackChunkeduspire = new Proxy(array, {
     set(_target, prop, value) {
+      // webpack will try to set the "push" function to its own push hook. intercept this
       if (prop === "push") {
         webpackPush = value;
+        // don't actually set the push function, but return true for success
         return true;
       } else {
         return Reflect.set(...arguments);
@@ -23,27 +60,30 @@ function contentScript() {
     },
     get(_target, prop, _receiver) {
       if (prop === "push" && webpackPush) {
-        return (item) => {
-          // this is the push function
+        return item => {
+          // this is our custom push function
 
-          // 66626 is currently in 179
-          if (item[0][0] === 179) {
-            // monkey-patch the 66626 function
-            const orig = item[1][66626];
-            item[1][66626] = (...args) => {
+          // find the chunk which contains the function
+          if (item[0][0] === configFunctionLocation.chunkId) {
 
-              // it's called "d"
-              const origDFunction = args[2].d;
-              args[2].d = (...dFunctionArgs) => {
-                // and within that it's called "X"
-                const origXFunction = dFunctionArgs[1].X;
-                dFunctionArgs[1].X = () => {
+            // monkey-patch the config function within the chunk
+            const orig = item[1][configFunctionLocation.functionId];
+            item[1][configFunctionLocation.functionId] = (...args) => {
+              // the config function is passed this "d-function" which it calls
+              // monkey-patch it
+              const origDFunction = args[2][configFunctionLocation.returnHook];
+              args[2][configFunctionLocation.returnHook] = (...dFunctionArgs) => {
+                // when it's called, the config function passes in another function as the second argument
+                // monkey-patch it
+                const functionKey = Object.keys(dFunctionArgs[1])[0];
+                const origXFunction = dFunctionArgs[1][functionKey];
+                dFunctionArgs[1][functionKey] = () => {
                   // this function actually returns the config
                   
                   const result = origXFunction();
                   // set to today+4 view
                   if ("DefaultCalendarViewTabRoleMapping" in result) {
-                    result.DefaultCalendarViewTabRoleMapping.student = 5;
+                    result.DefaultCalendarViewTabRoleMapping.student = screenId;
                   }
                   return result;
                 };
@@ -66,16 +106,22 @@ function contentScript() {
   });
 }
 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   if (changeInfo.status  === "loading" && tab.url) {
+    // get the user's preferences
+    const prefs = await chrome.storage.local.get({
+      theme: "auto", defaultScreen: "todayplus"
+    });
+    
     // inject the content script as soon as the tab has started loading
-    chrome.scripting.executeScript({
+    await chrome.scripting.executeScript({
       target: {
         tabId
       },
       world: "MAIN",
       injectImmediately: true,
-      func: contentScript
+      func: contentScript,
+      args: [prefs]
     });
   }
 });

@@ -1,10 +1,18 @@
-const checkDarkMode = document.getElementById("check-dark-mode");
+const selectTheme = document.getElementById("select-theme");
 const selectDefaultScreen = document.getElementById("select-default-screen");
+const btnSave = document.getElementById("btn-save");
 
 chrome.storage.local.get({
-    theme: "dark",
-    defaultScreen: "todayplus"
+  theme: "auto",
+  defaultScreen: "todayplus"
 }).then(({ theme, defaultScreen }) => {
-    checkDarkMode.checked = theme === "dark";
-    selectDefaultScreen.value = defaultScreen;
+  selectTheme.value = theme;
+  selectDefaultScreen.value = defaultScreen;
+});
+
+btnSave.addEventListener("click", () => {
+  chrome.storage.local.set({
+    theme: selectTheme.value,
+    defaultScreen: selectDefaultScreen.value
+  });
 });

@@ -125,3 +125,9 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     });
   }
 });
+
+chrome.runtime.onInstalled.addListener(({ reason }) => {
+  if (reason === "install") {
+    chrome.tabs.create({ url: "/onboarding/onboarding.html" });
+  }
+});

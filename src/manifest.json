@@ -3,16 +3,18 @@
   "name": "Securly Plus",
   "description": "Dark mode and improvements for Securly Flex",
   "version": "0.1",
-  "host_permissions": ["*://flex.securly.com"],
+  "host_permissions": ["*://flex.securly.com/*"],
   "content_scripts": [
     {
       "matches": ["*://flex.securly.com/*"],
-      "js": ["content-script.js"],
-      "css": ["dark-mode.css"],
-      "run_at": "document_start",
-      "world": "MAIN"
+      "css": ["dark-mode.css"]
     }
   ],
+  "options_page": "options/options.html",
+  "action": {
+    "default_title": "Options"
+  },
+  "permissions": ["storage", "scripting"],
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",

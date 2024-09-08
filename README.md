@@ -15,10 +15,10 @@ most low effort extension on the chrome web store
 
 [![Firefox addon](https://extensionworkshop.com/assets/img/documentation/publish/get-the-addon-178x60px.dad84b42.png)](https://addons.mozilla.org/en-US/firefox/addon/securly-plus/)
 
-[![Chrome extension](https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/UV4C4ybeBTsZt43U4xis.png)](https://chromewebstore.google.com/detail/cdnhkencehfaddihoojmappngkalgjfn/?hl=en&authuser=0)
+[![Chrome extension](https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/UV4C4ybeBTsZt43U4xis.png)](https://chromewebstore.google.com/detail/securly-plus/cdnhkencehfaddihoojmappngkalgjfn)
 
-> Note:
-> Right now, the extension is pending review in both web stores. You'll have to install it manually
+> [!NOTE]
+> The Firefox addon is currently pending review
 
 ### Manual Installation
 

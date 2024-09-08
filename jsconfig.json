@@ -1,3 +1,6 @@
 {
-    "include": ["src/**/*.js", "src/*.js"]
+  "include": ["src/**/*.js", "src/*.js"],
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM"]
+  }  
 }

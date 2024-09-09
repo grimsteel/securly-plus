@@ -1,6 +1,6 @@
 {
   "name": "securly-plus",
-  "version": "0.1",
+  "version": "1.0",
   "private": true,
   "devDependencies": {
     "@types/chrome": "^0.0.270"

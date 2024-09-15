@@ -1,0 +1,28 @@
+[{
+  "id": 1,
+  "priority": 1,
+  "action": {
+    "type": "redirect",
+    "redirect": { "extensionPath": "/site-cache-worker.js" }
+  },
+  "condition": {
+    "urlFilter": "flex.securly.com/securly-plus-service-worker.js",
+    "resourceTypes": ["script"]
+  }
+}, {
+  "id": 2,
+  "priority": 1,
+  "condition": {
+    "regexFilter": "flexprod-api-k8s.flex.securly.com/ftm/district/school/[\\w-]+/flex-period/schedule.*"
+  },
+  "action": {
+    "type": "modifyHeaders",
+    "responseHeaders": [
+      {
+        "header": "Cache-Control",
+        "operation": "set",
+        "value": "max-age=60, stale-while-revalidate=604800"
+      }
+    ]
+  }
+}]

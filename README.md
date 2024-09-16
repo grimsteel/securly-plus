@@ -5,13 +5,12 @@
 
 Dark mode and QoL improvements for [Securly Flex](https://flex.securly.com/)
 
-most low effort extension on the chrome web store
-
 ## Features
 
 * Dark Mode
 * Customize the default schedule tab
 * Customize the default screen
+* **Incredible performance improvements**
 
 ## Installation
 

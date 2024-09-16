@@ -5,50 +5,79 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Options</title>
     <link rel="icon" href="/icons/icon-128.png" />
-    <link rel="stylesheet" href="/water.css" />
-    <style>
-      h1 {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-    </style>
+    <link rel="stylesheet" href="/bootstrap.min.css" />
   </head>
-  <body>
-    <h1>
+  <body class="m-3">
+    <h1 class="d-flex align-items-center gap-3">
       <img src="/icons/icon-32.png" />
-      Options
+      Securly Plus
     </h1>
     <hr/>
 
-    <label for="select-theme">Theme:</label>
-    <select id="select-theme">
-      <option value="light">Light</option>
-      <option value="dark">Dark</option>
-      <option value="auto">System</option>
-    </select>
+    <h2 class="fs-3 mb-3 d-flex align-items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-palette-fill" viewBox="0 0 16 16">
+        <path d="M12.433 10.07C14.133 10.585 16 11.15 16 8a8 8 0 1 0-8 8c1.996 0 1.826-1.504 1.649-3.08-.124-1.101-.252-2.237.351-2.92.465-.527 1.42-.237 2.433.07M8 5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m4.5 3a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3M5 6.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m.5 6.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3"/>
+      </svg>
+      Appearance:
+    </h2>
 
-    <label for="select-default-schedule-tab">Default Schedule Tab:</label>
-    <select id="select-default-schedule-tab">
-      <option value="today">Today</option>
-      <option value="todayplus">Today + 4</option>
-      <option value="week">Week</option>
-      <option value="month">Month</option>
-    </select>
+    <div class="mb-3">
+      <label for="select-theme" class="form-label">Theme:</label>
+      <select id="select-theme" class="form-select">
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+        <option value="auto">System</option>
+      </select>
+    </div>
 
-    <label for="select-default-screen">Default Screen:</label>
-    <select id="select-default-screen">
-      <option value="activity">Activity</option>
-      <option value="schedule">Schedule</option>
-      <option value="notifications">Notifications</option>
-      <option value="directory">Directory</option>
-      <option value="training-videos">Training Videos</option>
-      <option value="documentation">Documentation</option>
-      <option value="my-profile">My Profile</option>
-      <option value="qrcode">QR Code</option>
-    </select>
+    <div class="row g-3 mb-3">
+      <div class="col">
+        <label for="select-default-schedule-tab" class="form-label">Default Schedule Tab:</label>
+        <select id="select-default-schedule-tab" class="form-select">
+          <option value="today">Today</option>
+          <option value="todayplus">Today + 4</option>
+          <option value="week">Week</option>
+          <option value="month">Month</option>
+        </select>
+      </div>
+      <div class="col">
+        <label for="select-default-screen" class="form-label">Default Screen:</label>
+        <select id="select-default-screen" class="form-select">
+          <option value="activity">Activity</option>
+          <option value="schedule">Schedule</option>
+          <option value="notifications">Notifications</option>
+          <option value="directory">Directory</option>
+          <option value="training-videos">Training Videos</option>
+          <option value="documentation">Documentation</option>
+          <option value="my-profile">My Profile</option>
+          <option value="qrcode">QR Code</option>
+        </select>
+      </div>
+    </div>
 
-    <button type="button" id="btn-save">Save</button>
+    <h2 class="fs-3 mb-3 d-flex align-items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-speedometer2" viewBox="0 0 16 16">
+        <path d="M8 4a.5.5 0 0 1 .5.5V6a.5.5 0 0 1-1 0V4.5A.5.5 0 0 1 8 4M3.732 5.732a.5.5 0 0 1 .707 0l.915.914a.5.5 0 1 1-.708.708l-.914-.915a.5.5 0 0 1 0-.707M2 10a.5.5 0 0 1 .5-.5h1.586a.5.5 0 0 1 0 1H2.5A.5.5 0 0 1 2 10m9.5 0a.5.5 0 0 1 .5-.5h1.5a.5.5 0 0 1 0 1H12a.5.5 0 0 1-.5-.5m.754-4.246a.39.39 0 0 0-.527-.02L7.547 9.31a.91.91 0 1 0 1.302 1.258l3.434-4.297a.39.39 0 0 0-.029-.518z"/>
+        <path fill-rule="evenodd" d="M0 10a8 8 0 1 1 15.547 2.661c-.442 1.253-1.845 1.602-2.932 1.25C11.309 13.488 9.475 13 8 13c-1.474 0-3.31.488-4.615.911-1.087.352-2.49.003-2.932-1.25A8 8 0 0 1 0 10m8-7a7 7 0 0 0-6.603 9.329c.203.575.923.876 1.68.63C4.397 12.533 6.358 12 8 12s3.604.532 4.923.96c.757.245 1.477-.056 1.68-.631A7 7 0 0 0 8 3"/>
+      </svg>
+      Performance:
+    </h2>
+        
+    <div class="form-check mb-3">
+      <input type="checkbox" id="check-force-search" class="form-check-input" />
+      <label for="check-force-search" class="form-check-label">Require search before showing session list</label>
+
+      <p class="form-text">This will force you to enter a search query or set a filter in order to view the session options for a day. This is generally much faster than waiting for the entire session list to load.</p>
+    </div>
+
+    <div class="form-check mb-3">
+      <input type="checkbox" id="check-session-caching" class="form-check-input" />
+      <label for="check-session-caching" class="form-check-label">Cache session selections</label>
+
+      <p class="form-text">This will cache your session selections and fallback sessions after the first load. This saves you from having to wait 20+ seconds after every click at the cost of not seeing updates immediately.</p>
+    </div>
+
+    <button type="button" id="btn-save" class="btn btn-success">Save</button>
 
     <script src="options.js"></script>
   </body>

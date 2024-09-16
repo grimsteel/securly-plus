@@ -46,7 +46,11 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   if (changeInfo.status  === "loading" && tab.url) {
     // get the user's preferences
     const prefs = await chrome.storage.local.get({
-      theme: "auto", defaultScheduleTab: "todayplus", defaultScreen: "schedule"
+      theme: "auto",
+      defaultScheduleTab: "todayplus",
+      defaultScreen: "schedule",
+      forceSearch: true,
+      sessionCaching: true
     });
     
     // inject the content script as soon as the tab has started loading

@@ -55,7 +55,7 @@
   let idb = null;
   /** @type {import("idb").IDBPDatabase} */
   let db = null;
-  /** @type {{ screenId: number, defaultScreen: number, idbUrl: string } | null} */
+  /** @type {{ screenId: number, defaultScreen: number, idbUrl: string, forceSearch: boolean, sessionCaching: boolean } | null} */
   let data = null;
   // they do some weird "polyfilling" of Promise
   const Promise = window.Promise;
@@ -108,9 +108,25 @@
           // get a reference to the XHR backend
           const xhrBackend = result.ɵinj.providers[0].ɵproviders[1];
           xhrBackend.prototype.handle = new Proxy(xhrBackend.prototype.handle, {
-            apply(target, thisArg, [request]) {
+            apply(_target, _thisArg, [request]) {
               const url = new URL(request.urlWithParams, location.href);
-              if (url.pathname.match(scheduleRe)) {
+              if (url.pathname.match(activityListRe) && data.forceSearch) {
+                // if they didn't provide a search, room, or activity type filter, return no results
+                if (!(url.searchParams.has("filter") || url.searchParams.has("activityType") || url.searchParams.has("defaultRoom"))) {
+                  return new Observable(observer => {
+                    observer.next({ type: 0 })
+                    request.headers.init();
+                    observer.next(new HttpResponse({
+                      headers: {},
+                      body: [],
+                      status: 200,
+                      statusText: "OK",
+                      url: request.urlWithParams,
+                    }));
+                    observer.complete();
+                  });
+                }
+              } else if (url.pathname.match(scheduleRe) && data.sessionCaching) {
                 return new Observable(observer => {
                   observer.next({ type: 0 });
                   request.headers.init();

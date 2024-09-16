@@ -6,9 +6,9 @@ chrome.action.onClicked.addListener(() => {
  * this content script basically just sends data to the main content script
  * @param {{ theme: string, defaultScreen: string, defaultScheduleTab: string }} preferences
  */
-function contentScript(preferences) {
+function contentScript(preferences, idbUrl) {
   // RUN ONCE
-  if (window.__securlyPlus) return;
+  if (window.__securlyPlusLoaded) return;
 
   const screenIdMap = {
     today: 1,
@@ -33,7 +33,13 @@ function contentScript(preferences) {
   console.debug("[SECURLY PLUS] injected preferences");
 
   // SEND DATA TO CONFIG PATCHER
-  window.__securlyPlus = { screenId, ...preferences };
+  window.__securlyPlusLoaded = true;
+
+  window.__securlyPlusLoad?.({
+    screenId,
+    ...preferences,
+    idbUrl
+  });
 }
 
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
@@ -51,7 +57,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
       world: "MAIN",
       injectImmediately: true,
       func: contentScript,
-      args: [prefs]
+      args: [prefs, chrome.runtime.getURL("idb.js")]
     });
   }
 });

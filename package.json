@@ -3,6 +3,7 @@
   "version": "1.0",
   "private": true,
   "devDependencies": {
-    "@types/chrome": "^0.0.270"
+    "@types/chrome": "^0.0.270",
+    "idb": "^8.0.0"
   }
 }

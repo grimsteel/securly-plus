@@ -27,5 +27,11 @@
     "48": "icons/icon-48.png",
     "64": "icons/icon-64.png",
     "128": "icons/icon-128.png"
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["idb.js"],
+      "matches": ["https://flex.securly.com/*"]
+    }
+  ]
 }

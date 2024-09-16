@@ -1,0 +1,168 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Securly Plus</title>
+    <link rel="stylesheet" href="/bootstrap.min.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Securly Plus: Unlock Securly Flex's maximum potential" />
+    <script>
+      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        document.documentElement.dataset.bsTheme = "dark";
+      }
+    </script>
+    <link rel="icon" href="/icon.png" />
+    <style>
+      #home, header {
+        backdrop-filter: blur(10px);
+      }
+      html[data-bs-theme=dark] #background {
+        display: inline !important;
+      }
+      html[data-bs-theme=dark] #background-light {
+        display: none;
+      }
+      .divider {
+        width: 100%;
+        height: 3rem;
+        background-color: rgb(0 0 0 / 10%);
+        border: solid rgb(0 0 0 / 15%);
+        border-width: 1px 0;
+        box-shadow: inset 0 0.5em 1.5em rgb(0 0 0 / 10%), inset 0 0.125em 0.5em rgb(0 0 0 / 15%);
+      }
+      #footer-logo {
+        filter: grayscale(1);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container fixed-top">
+      <header class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom">
+        <div class="col-md-3 mb-2 mb-md-0">
+          <a href="/" class="d-inline-flex link-body-emphasis text-decoration-none">
+            <img src="/icon.png" height="32" width="32" alt="Securly Plus logo" />
+          </a>
+        </div>
+
+        <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
+          <li><a href="#home" class="nav-link px-2">Home</a></li>
+          <li><a href="#features" class="nav-link px-2">Features</a></li>
+          <li><a href="#help" class="nav-link px-2">Help</a></li>
+        </ul>
+
+        <div class="col-md-3 text-end">
+          <a href="#get" class="btn btn-primary">Get the Extension</a>
+        </div>
+      </header>
+    </div>
+
+    <img src="/background.png" class="h-100 w-100 position-absolute object-fit-cover d-none" id="background" />
+    <img src="/background-light.png" class="h-100 w-100 position-absolute object-fit-cover" id="background-light" />
+
+    <div class="vh-100 d-flex align-items-center justify-content-center flex-column" id="home">
+      <h1 class="text-body-emphasis display-1">Securly Plus</h1>
+      <p class="fs-5 text-center">Unlock Securly Flex's maximum potential</p>
+    </div>
+
+    <div class="container col-xxl-8 px-4 py-5" id="features">
+      <h2 class="display-3 font-weight-bold text-body-emphasis mb-3">Features:</h2>
+      <p class="lead">A quick look at some of what this extension offers.</p>
+    </div>
+    
+    <div class="divider"></div>
+    
+    <div class="container col-xxl-8 px-4 py-5">
+      <div class="row flex-lg-row-reverse align-items-center g-5 py-5">
+        <div class="col-10 col-sm-8 col-lg-6">
+          <img class="img-thumbnail" src="dark-mode-comparison.png" loading="lazy" />
+        </div>
+        <div class="col-lg-6">
+          <h3 class="display-6 font-weight-bold text-body-emphasis lh-1 mb-3">Dark mode</h3>
+          <p class="lead">
+            Browse your flex sessions with the color scheme of your choosing.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="container col-xxl-8 px-4 py-5">
+      <div class="row flex-lg-row align-items-center g-5 py-5">
+        <div class="col-10 col-sm-8 col-lg-6">
+          <img class="img-thumbnail" src="schedule-tab.png" />
+        </div>
+        <div class="col-lg-6">
+          <h3 class="display-6 font-weight-bold text-body-emphasis lh-1 mb-3">Advanced customization options</h3>
+          <p class="lead">
+            Change the default screen and schedule tab Securly Flex uses.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="container col-xxl-8 px-4 py-5">
+      <div class="row flex-lg-row-reverse align-items-center g-5 py-5">
+        <div class="col-10 col-sm-8 col-lg-6">
+          <img class="img-thumbnail" src="loading.png" />
+        </div>
+        <div class="col-lg-6">
+          <h3 class="display-6 font-weight-bold text-body-emphasis lh-1 mb-3">Breathtaking performance improvements</h3>
+          <p class="lead">
+            Aggressive caching tactics reduce the wait time from 20+ seconds to <strong>less than a second</strong>.
+          </p>
+          <p class="lead fst-italic">Note: You'll need to spend a little time clicking through flex sessions before the caching can take effect.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="container col-xxl-8 px-4 py-5" id="help">
+      <h2 class="display-3 font-weight-bold text-body-emphasis mb-3">Help:</h2>
+      <p class="lead">Securly Plus was created by <a href="https://github.com/grimsteel" target="_blank" class="link-body-emphasis">Siddhant Kameswar</a>. Report bugs and ask for help on <a href="https://github.com/grimsteel/securly-plus" target="_blank">the GitHub page</a>!</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="container col-xxl-8 px-4 py-5" id="get">
+      <h2 class="display-3 font-weight-bold text-body-emphasis mb-3">Get the Extension:</h2>
+      <p class="d-flex gap-3 mb-3">
+        <a href="https://addons.mozilla.org/en-US/firefox/addon/securly-plus/">
+          <img
+            src="https://extensionworkshop.com/assets/img/documentation/publish/get-the-addon-178x60px.dad84b42.png" loading="lazy"
+            alt="firefox addon" />
+        </a>
+        <a href="https://chromewebstore.google.com/detail/securly-plus/cdnhkencehfaddihoojmappngkalgjfn">
+          <img
+            src="https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/UV4C4ybeBTsZt43U4xis.png" loading="lazy"
+            alt="chrome web store addon" />
+        </a>
+      </p>
+      <p class="lead">You can also install the extension manually. <a href="https://github.com/grimsteel/securly-plus/blob/main/README.md#manual-installation" target="_blank">View instructions.</a></p>
+    </div>
+
+    <div class="container">
+      <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
+        <div class="col-md-4 d-flex align-items-center">
+          <span class="mb-3 me-2 mb-md-0 text-body-secondary lh-1">
+            <img src="/icon.png" height="32" width="32" alt="Securly Plus logo" id="footer-logo" />
+          </span>
+          <span class="mb-3 mb-md-0 text-body-secondary">© 2024 Siddhant Kameswar</span>
+        </div>
+        
+        <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
+          <li class="ms-3">
+            <a class="text-body-secondary" href="https://github.com/grimsteel/securly-plus" target="_blank">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
+                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/>
+              </svg>
+            </a>
+          </li>
+        </ul>
+      </footer>
+    </div>
+  </body>
+</html>

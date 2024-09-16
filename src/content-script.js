@@ -1,8 +1,10 @@
 (() => {
   window.__securlyPlusLoad = async loadedData => {
     data = loadedData;
-    // load idb
-    idb = await import(data.idbUrl);
+    // load idb (but sanitize the URL first)
+    const idbUrl = data.idbUrl.match(/^(moz|chrome)-extension:\/\/([\w-]+)\/idb.js$/);
+    if (!idbUrl) throw new Error("invalid IDB url");
+    idb = await import(`${idbUrl[1]}-extension://${idbUrl[2]}/idb.js`);
     db = await idb.openDB("__securly-plus-db", 2, {
       upgrade(db, oldVersion) {
         if (oldVersion < 1) {

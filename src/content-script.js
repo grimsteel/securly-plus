@@ -66,7 +66,7 @@
   let idb = null;
   /** @type {import("idb").IDBPDatabase} */
   let db = null;
-  /** @type {{ defaultScreen: number, idbUrl: string, forceSearch: boolean, sessionCaching: boolean } | null} */
+  /** @type {{ defaultScheduleTab: string, defaultScreen: string, idbUrl: string, forceSearch: boolean, sessionCaching: boolean } | null} */
   let data = null;
   // they do some weird "polyfilling" of Promise
   const Promise = window.Promise;

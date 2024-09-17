@@ -66,7 +66,7 @@
   let idb = null;
   /** @type {import("idb").IDBPDatabase} */
   let db = null;
-  /** @type {{ defaultScheduleTab: string, defaultScreen: string, idbUrl: string, forceSearch: boolean, sessionCaching: boolean } | null} */
+  /** @type {{ defaultScheduleTab: string, defaultScreen: string, idbUrl: string, sessionCaching: boolean } | null} */
   let data = null;
   // they do some weird "polyfilling" of Promise
   const Promise = window.Promise;
@@ -122,7 +122,7 @@
           xhrBackend.prototype.handle = new Proxy(xhrBackend.prototype.handle, {
             apply(_target, _thisArg, [request]) {
               const url = new URL(request.urlWithParams, location.href);
-              if (url.pathname.match(activityListRe) && data?.forceSearch) {
+              /*if (url.pathname.match(activityListRe) && data?.forceSearch) {
                 // if they didn't provide a search, room, or activity type filter, return no results
                 if (!(url.searchParams.has("filter") || url.searchParams.has("activityType") || url.searchParams.has("defaultRoom"))) {
                   return new Observable(observer => {
@@ -138,7 +138,7 @@
                     observer.complete();
                   });
                 }
-              } else if (url.pathname.match(scheduleRe) && data?.sessionCaching) {
+              } else*/ if (url.pathname.match(scheduleRe) && data?.sessionCaching) {
                 return new Observable(observer => {
                   observer.next({ type: 0 });
                   request.headers.init();

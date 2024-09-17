@@ -3,7 +3,7 @@ async function sendPrefs() {
     theme: "auto",
     defaultScheduleTab: "todayplus",
     defaultScreen: "schedule",
-    forceSearch: true,
+    //forceSearch: true,
     sessionCaching: true,
     idbUrl: chrome.runtime.getURL("idb.js")
   });

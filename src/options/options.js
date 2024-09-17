@@ -1,7 +1,7 @@
 const selectTheme = document.getElementById("select-theme");
 const selectDefaultScheduleTab = document.getElementById("select-default-schedule-tab");
 const selectDefaultScreen = document.getElementById("select-default-screen");
-const checkForceSearch = document.getElementById("check-force-search");
+//const checkForceSearch = document.getElementById("check-force-search");
 const checkSessionCaching = document.getElementById("check-session-caching");
 const btnSave = document.getElementById("btn-save");
 
@@ -9,13 +9,13 @@ chrome.storage.local.get({
   theme: "auto",
   defaultScreen: "schedule",
   defaultScheduleTab: "todayplus",
-  forceSearch: true,
+  //forceSearch: true,
   sessionCaching: true
-}).then(({ theme, defaultScreen, defaultScheduleTab, forceSearch, sessionCaching }) => {
+}).then(({ theme, defaultScreen, defaultScheduleTab, sessionCaching }) => {
   selectTheme.value = theme;
   selectDefaultScreen.value = defaultScreen;
   selectDefaultScheduleTab.value = defaultScheduleTab;
-  checkForceSearch.checked = forceSearch;
+  //checkForceSearch.checked = forceSearch;
   checkSessionCaching.checked = sessionCaching;
 });
 
@@ -24,7 +24,7 @@ btnSave.addEventListener("click", () => {
     theme: selectTheme.value,
     defaultScreen: selectDefaultScreen.value,
     defaultScheduleTab: selectDefaultScheduleTab.value,
-    forceSearch: checkForceSearch.checked,
+    //forceSearch: checkForceSearch.checked,
     sessionCaching: checkSessionCaching.checked
   });
 });

@@ -1,6 +1,9 @@
 (() => {
-  window.__securlyPlusLoad = async loadedData => {
-    data = loadedData;
+  window.postMessage({ type: "__securly-plus-get-prefs" });
+  window.addEventListener("message", async e => {
+    if (e.data.type !== "__securly-plus-prefs") return;
+    
+    data = e.data;
     // load idb (but sanitize the URL first)
     const idbUrl = data.idbUrl.match(/^(moz|chrome)-extension:\/\/([\w-]+)\/idb.js$/);
     if (!idbUrl) throw new Error("invalid IDB url");
@@ -24,12 +27,18 @@
         }
       }
     });
-  };
+  });
   
   // PATCH CONFIG
 
   const defaultScheduleTab = "DefaultCalendarViewTabRoleMapping";
   const defaultScreen = "DefaultRouteUserRoleMapping";
+  const scheduleTabMap = {
+    today: 1,
+    todayplus: 5,
+    week: 7,
+    month: 31
+  };
   // match the callback within the function: (Te,Q,h)=>h.d(Q,{X
   //                   ( Te,   Q ,   h  )=>  h  .  d  ( Q ,{ X
   // we want to find "d" and "X" (actual names might be different)
@@ -57,7 +66,7 @@
   let idb = null;
   /** @type {import("idb").IDBPDatabase} */
   let db = null;
-  /** @type {{ screenId: number, defaultScreen: number, idbUrl: string, forceSearch: boolean, sessionCaching: boolean } | null} */
+  /** @type {{ defaultScreen: number, idbUrl: string, forceSearch: boolean, sessionCaching: boolean } | null} */
   let data = null;
   // they do some weird "polyfilling" of Promise
   const Promise = window.Promise;
@@ -73,7 +82,8 @@
           Object.defineProperty(result[defaultScheduleTab], "student", {
             get() {
               console.log("[SECURLY PLUS] returned patched config");
-              return data?.screenId ?? 1;
+              const tabId = data?.defaultScheduleTab ? scheduleTabMap[data.defaultScheduleTab] : 1;
+              return tabId;
             }
           });
 
@@ -112,7 +122,7 @@
           xhrBackend.prototype.handle = new Proxy(xhrBackend.prototype.handle, {
             apply(_target, _thisArg, [request]) {
               const url = new URL(request.urlWithParams, location.href);
-              if (url.pathname.match(activityListRe) && data.forceSearch) {
+              if (url.pathname.match(activityListRe) && data?.forceSearch) {
                 // if they didn't provide a search, room, or activity type filter, return no results
                 if (!(url.searchParams.has("filter") || url.searchParams.has("activityType") || url.searchParams.has("defaultRoom"))) {
                   return new Observable(observer => {
@@ -128,7 +138,7 @@
                     observer.complete();
                   });
                 }
-              } else if (url.pathname.match(scheduleRe) && data.sessionCaching) {
+              } else if (url.pathname.match(scheduleRe) && data?.sessionCaching) {
                 return new Observable(observer => {
                   observer.next({ type: 0 });
                   request.headers.init();

@@ -10,12 +10,7 @@ function contentScript(preferences, idbUrl) {
   // RUN ONCE
   if (window.__securlyPlusLoaded) return;
 
-  const screenIdMap = {
-    today: 1,
-    todayplus: 5,
-    week: 7,
-    month: 31
-  };
+  
 
   const screenId = screenIdMap[preferences.defaultScheduleTab] ?? screenIdMap.todayplus;
 
@@ -42,7 +37,7 @@ function contentScript(preferences, idbUrl) {
   });
 }
 
-chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+/*chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   if (changeInfo.status  === "loading" && tab.url) {
     // get the user's preferences
     const prefs = await chrome.storage.local.get({
@@ -64,7 +59,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
       args: [prefs, chrome.runtime.getURL("idb.js")]
     });
   }
-});
+});*/
 
 chrome.runtime.onInstalled.addListener(({ reason }) => {
   if (reason === "install") {

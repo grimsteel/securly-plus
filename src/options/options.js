@@ -3,6 +3,7 @@ const selectDefaultScheduleTab = document.getElementById("select-default-schedul
 const selectDefaultScreen = document.getElementById("select-default-screen");
 //const checkForceSearch = document.getElementById("check-force-search");
 const checkSessionCaching = document.getElementById("check-session-caching");
+const checkInstantRequests = document.getElementById("check-instant-requests");
 const btnSave = document.getElementById("btn-save");
 
 chrome.storage.local.get({
@@ -10,13 +11,15 @@ chrome.storage.local.get({
   defaultScreen: "schedule",
   defaultScheduleTab: "todayplus",
   //forceSearch: true,
-  sessionCaching: true
-}).then(({ theme, defaultScreen, defaultScheduleTab, sessionCaching }) => {
+  sessionCaching: true,
+  instantRequests: true
+}).then(({ theme, defaultScreen, defaultScheduleTab, sessionCaching, instantRequests }) => {
   selectTheme.value = theme;
   selectDefaultScreen.value = defaultScreen;
   selectDefaultScheduleTab.value = defaultScheduleTab;
   //checkForceSearch.checked = forceSearch;
   checkSessionCaching.checked = sessionCaching;
+  checkInstantRequests.checked = instantRequests;
 });
 
 btnSave.addEventListener("click", () => {
@@ -25,7 +28,8 @@ btnSave.addEventListener("click", () => {
     defaultScreen: selectDefaultScreen.value,
     defaultScheduleTab: selectDefaultScheduleTab.value,
     //forceSearch: checkForceSearch.checked,
-    sessionCaching: checkSessionCaching.checked
+    sessionCaching: checkSessionCaching.checked,
+    instantRequests: checkInstantRequests.checked
   });
 });
 

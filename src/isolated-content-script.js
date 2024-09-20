@@ -5,6 +5,7 @@ async function sendPrefs() {
     defaultScreen: "schedule",
     //forceSearch: true,
     sessionCaching: true,
+    instantRequests: true,
     idbUrl: chrome.runtime.getURL("idb.js")
   });
   window.postMessage({

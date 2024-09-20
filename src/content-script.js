@@ -44,8 +44,9 @@
   // we want to find "d" and "X" (actual names might be different)
   const callbackRe = /\(\w+,(\w+),(\w+)\)=>.*\2\.(\w+)\(\1,{([^}]+)}/;
   const objectKvRe = /(\w+):\(\)=>\w+,?/g;
-  const scheduleRe = /\/ftm\/district\/school\/[\w-]+\/flex-period\/schedule/;
-  const activityListRe = /\/ftm\/district\/school\/flex-period\/[\w-]+\/scheduled-activity/;
+  const scheduleRe = /^\/ftm\/district\/school\/[\w-]+\/flex-period\/schedule$/;
+  const activityListRe = /^\/ftm\/district\/school\/flex-period\/[\w-]+\/scheduled-activity$/;
+  const registrationRe = /^\/ftm\/district\/school\/flex-period\/activity\/scheduled-activity\/scheduled-activity-scheduling\/([\w+])\/student\/registration$/;
 
   function getFunKey(paramObject, idx) {
     const matches = [...paramObject.matchAll(objectKvRe)];
@@ -66,8 +67,9 @@
   let idb = null;
   /** @type {import("idb").IDBPDatabase} */
   let db = null;
-  /** @type {{ defaultScheduleTab: string, defaultScreen: string, idbUrl: string, sessionCaching: boolean } | null} */
+  /** @type {{ defaultScheduleTab: string, defaultScreen: string, idbUrl: string, sessionCaching: boolean, instantRequests: boolean } | null} */
   let data = null;
+  let mostRecentActivityItems = null;
   // they do some weird "polyfilling" of Promise
   const Promise = window.Promise;
 
@@ -122,23 +124,39 @@
           xhrBackend.prototype.handle = new Proxy(xhrBackend.prototype.handle, {
             apply(_target, _thisArg, [request]) {
               const url = new URL(request.urlWithParams, location.href);
-              /*if (url.pathname.match(activityListRe) && data?.forceSearch) {
-                // if they didn't provide a search, room, or activity type filter, return no results
-                if (!(url.searchParams.has("filter") || url.searchParams.has("activityType") || url.searchParams.has("defaultRoom"))) {
-                  return new Observable(observer => {
-                    observer.next({ type: 0 })
-                    request.headers.init();
-                    observer.next(new HttpResponse({
-                      headers: {},
-                      body: [],
-                      status: 200,
-                      statusText: "OK",
-                      url: request.urlWithParams,
-                    }));
-                    observer.complete();
+              if (url.pathname.match(registrationRe) && data?.instantRequests && request.method === "POST") {
+                // reflect registration in the cache immediately
+
+                const reqObservable = Reflect.apply(...arguments);
+
+                // wrap the original observable
+                return new Observable(observer => {
+                  reqObservable.subscribe(r => {
+                    // 4 = successful resposne
+                    if (r.type === 4) {
+                      console.log(url, mostRecentActivityItems);
+                    }
+                    observer.next(r);
                   });
-                }
-              } else*/ if (url.pathname.match(scheduleRe) && data?.sessionCaching) {
+                });
+              } if (url.pathname.match(activityListRe) && data?.instantRequests) {
+                // keep track of fetched activity items
+
+                const reqObservable = Reflect.apply(...arguments);
+
+                // wrap the original observable
+                return new Observable(observer => {
+                  reqObservable.subscribe(r => {
+                    // 4 = successful resposne
+                    if (r.type === 4) {
+                      mostRecentActivityItems = r.body;
+                    }
+                    observer.next(r);
+                  });
+                });
+              } if (url.pathname.match(scheduleRe) && data?.sessionCaching) {
+                // cache schedules
+                
                 return new Observable(observer => {
                   observer.next({ type: 0 });
                   request.headers.init();
@@ -187,6 +205,8 @@
                           };
                           await tx.objectStore("schedulings-cache").put(dbItem);
                         }
+
+                        console.debug(`[SECURLY PLUS] cached schedule items from ${url.searchParams.get("startDate")} to ${url.searchParams.get("endDate")}`);
                       }
                       return r;
                     })
@@ -211,6 +231,8 @@
                       item.catchallCollection = catchalls;
                       item.scheduledActivitySchedulings = schedulings;
                     }
+
+                    console.debug(`[SECURLY PLUS] returned cached schedule items from ${url.searchParams.get("startDate")} to ${url.searchParams.get("endDate")}`);
 
                     return scheduleItems;
                   })();

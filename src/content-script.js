@@ -1,14 +1,29 @@
 (() => {
+  // fancy log function
+  function log(type, message) {
+    console.log(
+      "%cSECURLY PLUS%c%s%c • %s",
+      "background: #0d9488; color: #fef3c7; border-top-left-radius: 4px; border-bottom-left-radius: 4px; padding: 4px; font-weight: bold;",
+      "background: #bef264; color: #052e16; padding: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px;",
+      type,
+      "",
+      message
+    );
+  }
+
+  log("general", "Securly Plus v__VERSION__ loaded");
+  
   window.postMessage({ type: "__securly-plus-get-prefs" });
   window.addEventListener("message", async e => {
-    if (e.data.type !== "__securly-plus-prefs") return;
+    if (e.data.type !== "__securly-plus-prefs" || data !== null) return;
     
     data = e.data;
     // load idb (but sanitize the URL first)
+    log("session caching", "loaded indexed DB");
     const idbUrl = data.idbUrl.match(/^(moz|chrome)-extension:\/\/([\w-]+)\/idb.js$/);
     if (!idbUrl) throw new Error("invalid IDB url");
-    idb = await import(`${idbUrl[1]}-extension://${idbUrl[2]}/idb.js`);
-    db = await idb.openDB("__securly-plus-db", 2, {
+    const idb = await import(`${idbUrl[1]}-extension://${idbUrl[2]}/idb.js`);
+    db.resolve(await idb.openDB("__securly-plus-db", 2, {
       upgrade(db, oldVersion) {
         if (oldVersion < 1) {
           db.createObjectStore("schedule-item-cache", {
@@ -26,7 +41,7 @@
           schedulingsStore.createIndex("last-accessed", "lastAccessed");
         }
       }
-    });
+    }));
   });
   
   // PATCH CONFIG
@@ -63,15 +78,13 @@
   let gotMainFile = false;
   let Observable = null;
   let HttpResponse = null;
-  /** @type {import("idb") | null} */
-  let idb = null;
-  /** @type {import("idb").IDBPDatabase} */
-  let db = null;
+  // they do some weird "polyfilling" of Promise
+  const Promise = window.Promise;
+  /** @type {PromiseWithResolvers<import("idb").IDBPDatabase>} */
+  const db = Promise.withResolvers();
   /** @type {{ defaultScheduleTab: string, defaultScreen: string, idbUrl: string, sessionCaching: boolean, instantRequests: boolean } | null} */
   let data = null;
   let mostRecentActivityItems = null;
-  // they do some weird "polyfilling" of Promise
-  const Promise = window.Promise;
 
   const chunks = [
     // config chunk (app.config.ts)
@@ -79,11 +92,11 @@
       keywords: [defaultScheduleTab, defaultScreen],
       fns: {
         0(result) {
-          console.debug("[SECURLY PLUS] hooked config function");
+          log("config patcher", "hooked config function");
           // patch schedule tab
           Object.defineProperty(result[defaultScheduleTab], "student", {
             get() {
-              console.log("[SECURLY PLUS] returned patched config");
+              log("config patcher", "returned patched schedule tab");
               const tabId = data?.defaultScheduleTab ? scheduleTabMap[data.defaultScheduleTab] : 1;
               return tabId;
             }
@@ -92,7 +105,7 @@
           // patch screen
           Object.defineProperty(result[defaultScreen], "student", {
             get() {
-              console.log("[SECURLY PLUS] returned patched config");
+              log("config patcher", "returned patched default screen");
               return data?.defaultScreen ?? 1;
             }
           });
@@ -104,7 +117,6 @@
       keywords: ["_isScalar"],
       fns: {
         0(result) {
-          console.log("[SECURLY PLUS] got reference to Observable");
           Observable = result;
         }
       }
@@ -117,7 +129,7 @@
           HttpResponse = result;
         },
         0(result) {
-          console.log("[SECURLY PLUS] hooked XHR Backend");
+          log("general", "hooked XHR Backend");
 
           // get a reference to the XHR backend
           const xhrBackend = result.ɵinj.providers[0].ɵproviders[1];
@@ -157,7 +169,7 @@
               } if (url.pathname.match(scheduleRe) && data?.sessionCaching) {
                 // cache schedules
                 
-                return new Observable(observer => {
+                return new Observable(observer => {                  
                   observer.next({ type: 0 });
                   request.headers.init();
 
@@ -171,42 +183,47 @@
                     .then(r => r.json())
                     .then(async r => {
                       // update the cache
-                      const tx = db?.transaction(["schedule-item-cache", "catchall-cache", "schedulings-cache"], "readwrite");
+                      try {
+                        const tx = (await db.promise).transaction(["schedule-item-cache", "catchall-cache", "schedulings-cache"], "readwrite");
 
-                      for (const item of r) {
-                        const { catchallCollection, scheduledActivitySchedulings, ...rest } = item;
-                        await tx.objectStore("schedule-item-cache").put(rest);
+                        for (const item of r) {
+                          const { catchallCollection, scheduledActivitySchedulings, ...rest } = item;
+                          await tx.objectStore("schedule-item-cache").put(rest);
 
-                        const range = IDBKeyRange.bound(
-                          [item.uuid, startTime],
-                          [item.uuid, endTime]
-                        );
-                        // delete old items
-                        await tx.objectStore("catchall-cache").delete(range);
-                        await tx.objectStore("schedulings-cache").delete(range);
+                          const range = IDBKeyRange.bound(
+                            [item.uuid, startTime],
+                            [item.uuid, endTime]
+                          );
+                          // delete old items
+                          await tx.objectStore("catchall-cache").delete(range);
+                          await tx.objectStore("schedulings-cache").delete(range);
 
-                        // cache catchall items
-                        for (const catchall of catchallCollection) {
-                          const dbItem = {
-                            ...catchall,
-                            scheduleUuid: item.uuid,
-                            dateNumber: Date.parse(catchall.date),
-                            lastAccessed: Date.now()
-                          };
-                          await tx.objectStore("catchall-cache").put(dbItem);
+                          // cache catchall items
+                          for (const catchall of catchallCollection) {
+                            const dbItem = {
+                              ...catchall,
+                              scheduleUuid: item.uuid,
+                              dateNumber: Date.parse(catchall.date),
+                              lastAccessed: Date.now()
+                            };
+                            await tx.objectStore("catchall-cache").put(dbItem);
+                          }
+                          // cache scheduled items
+                          for (const scheduling of scheduledActivitySchedulings) {
+                            const dbItem = {
+                              ...scheduling,
+                              scheduleUuid: item.uuid,
+                              dateNumber: Date.parse(scheduling.scheduledDate),
+                              lastAccessed: Date.now()
+                            };
+                            await tx.objectStore("schedulings-cache").put(dbItem);
+                          }
+
+                          log("session caching", `cached schedule items from ${url.searchParams.get("startDate")} to ${url.searchParams.get("endDate")}`);
                         }
-                        // cache scheduled items
-                        for (const scheduling of scheduledActivitySchedulings) {
-                          const dbItem = {
-                            ...scheduling,
-                            scheduleUuid: item.uuid,
-                            dateNumber: Date.parse(scheduling.scheduledDate),
-                            lastAccessed: Date.now()
-                          };
-                          await tx.objectStore("schedulings-cache").put(dbItem);
-                        }
-
-                        console.debug(`[SECURLY PLUS] cached schedule items from ${url.searchParams.get("startDate")} to ${url.searchParams.get("endDate")}`);
+                      } catch (e) {
+                        // error while saving - we still want to return data
+                        console.warn(e);
                       }
                       return r;
                     })
@@ -214,11 +231,14 @@
                   
                   // but also see if we have something cached
                   const cacheRequest = (async () => {
-                    const tx = db.transaction(["schedule-item-cache", "catchall-cache", "schedulings-cache"], "readonly");
+                    const tx = (await db.promise).transaction(["schedule-item-cache", "catchall-cache", "schedulings-cache"], "readonly");
                     const scheduleItems = await tx.objectStore("schedule-item-cache").getAll();
                     // force a fetch
-                    if (scheduleItems.length === 0) throw new Error("no cache available");
-                    
+                    if (scheduleItems.length === 0) {
+                      console.log("no cache available");
+                      throw new Error("no cache available");
+                    }
+
                     for (const item of scheduleItems) {
                       const range = IDBKeyRange.bound(
                         [item.uuid, startTime],
@@ -232,7 +252,7 @@
                       item.scheduledActivitySchedulings = schedulings;
                     }
 
-                    console.debug(`[SECURLY PLUS] returned cached schedule items from ${url.searchParams.get("startDate")} to ${url.searchParams.get("endDate")}`);
+                    log("session caching", `returned cached schedule items from ${url.searchParams.get("startDate")} to ${url.searchParams.get("endDate")}`);
 
                     return scheduleItems;
                   })();

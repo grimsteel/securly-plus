@@ -4,6 +4,7 @@ const selectDefaultScreen = document.getElementById("select-default-screen");
 //const checkForceSearch = document.getElementById("check-force-search");
 const checkSessionCaching = document.getElementById("check-session-caching");
 const checkInstantRequests = document.getElementById("check-instant-requests");
+const toastSavedSuccesfully = document.getElementById("toast-saved-successfully");
 const btnSave = document.getElementById("btn-save");
 
 chrome.storage.local.get({
@@ -31,6 +32,10 @@ btnSave.addEventListener("click", () => {
     sessionCaching: checkSessionCaching.checked,
     instantRequests: checkInstantRequests.checked
   });
+
+  // show a success toast
+  toastSavedSuccesfully.classList.add("show");
+  setTimeout(() => toastSavedSuccesfully.classList.remove("show"), 3000);
 });
 
 if (window.matchMedia("(prefers-color-scheme: dark)").matches) {

@@ -1,10 +1,13 @@
 #!/bin/bash
 
 shopt -s extglob
+set -e
 
 targets=("chrome" "firefox")
 
 rm -rf build/
+
+version=$(jq ".version" package.json -r)
 
 for target in ${targets[@]}; do
   echo "Building target $target"
@@ -17,7 +20,10 @@ for target in ${targets[@]}; do
   # merge manifests
   jq -s '.[0] * .[1]' src/manifest.json src/manifest.$target.json > build/$target/manifest.json
 
-  pushd build/$target/
+  pushd build/$target/ > /dev/null
+  # handle  $$VERSION$$
+   sed -i "s/__VERSION__/$version/g" $(find . -type f)
+  
   zip -q -r ../$target.zip .
-  popd
+  popd > /dev/null
 done

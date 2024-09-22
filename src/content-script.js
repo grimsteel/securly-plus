@@ -60,8 +60,8 @@
   const callbackRe = /\(\w+,(\w+),(\w+)\)=>.*\2\.(\w+)\(\1,{([^}]+)}/;
   const objectKvRe = /(\w+):\(\)=>\w+,?/g;
   const scheduleRe = /^\/ftm\/district\/school\/[\w-]+\/flex-period\/schedule$/;
-  const activityListRe = /^\/ftm\/district\/school\/flex-period\/[\w-]+\/scheduled-activity$/;
-  const registrationRe = /^\/ftm\/district\/school\/flex-period\/activity\/scheduled-activity\/scheduled-activity-scheduling\/([\w+])\/student\/registration$/;
+  const activityListRe = /^\/ftm\/district\/school\/flex-period\/([\w-]+)\/scheduled-activity$/;
+  const registrationRe = /^\/ftm\/district\/school\/flex-period\/activity\/scheduled-activity\/scheduled-activity-scheduling\/([\w-]+)\/student\/registration$/;
 
   function getFunKey(paramObject, idx) {
     const matches = [...paramObject.matchAll(objectKvRe)];
@@ -85,6 +85,7 @@
   /** @type {{ defaultScheduleTab: string, defaultScreen: string, idbUrl: string, sessionCaching: boolean, instantRequests: boolean } | null} */
   let data = null;
   let mostRecentActivityItems = null;
+  let mostRecentActivityScheduleId = null;
 
   const chunks = [
     // config chunk (app.config.ts)
@@ -136,22 +137,45 @@
           xhrBackend.prototype.handle = new Proxy(xhrBackend.prototype.handle, {
             apply(_target, _thisArg, [request]) {
               const url = new URL(request.urlWithParams, location.href);
-              if (url.pathname.match(registrationRe) && data?.instantRequests && request.method === "POST") {
-                // reflect registration in the cache immediately
 
+              const registrationMatch = url.pathname.match(registrationRe);
+              const activityListMatch = url.pathname.match(activityListRe);
+              if (registrationMatch && data?.instantRequests && request.method === "POST") {
+                // reflect registration in the cache immediately
                 const reqObservable = Reflect.apply(...arguments);
 
                 // wrap the original observable
                 return new Observable(observer => {
-                  reqObservable.subscribe(r => {
+                  reqObservable.subscribe(async r => {
                     // 4 = successful resposne
                     if (r.type === 4) {
-                      console.log(url, mostRecentActivityItems);
+                      const item = mostRecentActivityItems?.find(a => a.uuid === registrationMatch[1]);
+                      if (item && mostRecentActivityScheduleId) {
+                        log("instant requests", `auto cached request for ${item.activityDate}`);
+                        const tx = (await db.promise).transaction(["schedulings-cache", "catchall-cache"], "readwrite");
+                        const date = Date.parse(item.scheduledDate);
+                        // delete any old items
+                        const range = IDBKeyRange.only(
+                          [mostRecentActivityScheduleId, date]
+                        );
+                        await tx.objectStore("schedulings-cache").delete(range);
+                        await tx.objectStore("catchall-cache").delete(range);
+
+                        // cache this item
+                        const dbItem = {
+                          ...item,
+                          isRegistered: true,
+                          scheduleUuid: mostRecentActivityScheduleId,
+                          dateNumber: date,
+                          lastAccessed: Date.now()
+                        };
+                        await tx.objectStore("schedulings-cache").put(dbItem);
+                      }
                     }
                     observer.next(r);
                   });
                 });
-              } if (url.pathname.match(activityListRe) && data?.instantRequests) {
+              } else if (activityListMatch && data?.instantRequests) {
                 // keep track of fetched activity items
 
                 const reqObservable = Reflect.apply(...arguments);
@@ -161,12 +185,14 @@
                   reqObservable.subscribe(r => {
                     // 4 = successful resposne
                     if (r.type === 4) {
+                      log("instant requests", "got new activity list");
                       mostRecentActivityItems = r.body;
+                      mostRecentActivityScheduleId = activityListMatch[1];
                     }
                     observer.next(r);
                   });
                 });
-              } if (url.pathname.match(scheduleRe) && data?.sessionCaching) {
+              } else if (url.pathname.match(scheduleRe) && data?.sessionCaching) {
                 // cache schedules
                 
                 return new Observable(observer => {                  

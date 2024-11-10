@@ -58,7 +58,7 @@
   //                   ( Te,   Q ,   h  )=>  h  .  d  ( Q ,{ X
   // we want to find "d" and "X" (actual names might be different)
   const callbackRe = /\(\w+,(\w+),(\w+)\)=>.*\2\.(\w+)\(\1,{([^}]+)}/;
-  const objectKvRe = /(\w+):\(\)=>\w+,?/g;
+  const objectKvRe = /([\$\w]+):\(\)=>[\$\w]+,?/g;
   const scheduleRe = /^\/ftm\/district\/school\/[\w-]+\/flex-period\/schedule$/;
   const activityListRe = /^\/ftm\/district\/school\/flex-period\/([\w-]+)\/scheduled-activity$/;
   const registrationRe = /^\/ftm\/district\/school\/flex-period\/activity\/scheduled-activity\/scheduled-activity-scheduling\/([\w-]+)\/student\/registration$/;
@@ -119,6 +119,31 @@
       fns: {
         0(result) {
           Observable = result;
+        }
+      }
+    },
+    // angular create component
+    {
+      keywords: ["g.co/ng/security"],
+      fns: {
+        74(result) {
+          if (!data?.ignoreLimits) return;
+          
+          return new Proxy(result, {
+            apply(_target, _thisArg, [item]) {
+              if (item?.selectors?.[0]?.[0] === "app-join-activity-modal") {
+                const scheduleListComponent = item.dependencies[3];
+                scheduleListComponent.prototype.getDenominator = new Proxy(scheduleListComponent.prototype.getDenominator, {
+                  apply(_target, _thisArg, [e]) {
+                    if (e.registeredStudentsCount === "Full") {
+                      return `${e.maxAttendees} (Will attempt to flex)`;
+                    } else return Reflect.apply(...arguments);
+                  }
+                });
+              }
+              return Reflect.apply(...arguments);
+            }
+          });
         }
       }
     },
@@ -193,8 +218,8 @@
                         r.body.forEach(session => {
                           if (!session.canRegister) {
                             session.canRegister = true;
-                            session.registeredStudentsCount = -Infinity;
-                            session.registeredStudentsCountOfRoomCap = -Infinity;
+                            session.registeredStudentsCount = "Full";
+                            session.registeredStudentsCountOfRoomCap = "Full";
                           }
                         });
                       }
@@ -360,6 +385,7 @@
                           const funKey = getFunKey(callbackMatch[4], idx);
                           const origXFunction = dFunctionArgs[1][funKey];
                           let hasHooked = false;
+                          let overriddenResult = null;
                           dFunctionArgs[1][funKey] = () => {
                             // this function is the one we care about
 
@@ -367,9 +393,10 @@
                             if (!hasHooked) {
                               hasHooked = true;
 
-                              callback(result);
+                              const overrideResult = callback(result);
+                              if (overrideResult) overriddenResult = overrideResult;
                             }
-                            return result;
+                            return overriddenResult ?? result;
                           };
                         }
                       }

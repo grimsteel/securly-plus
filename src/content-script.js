@@ -82,7 +82,7 @@
   const Promise = window.Promise;
   /** @type {PromiseWithResolvers<import("idb").IDBPDatabase>} */
   const db = Promise.withResolvers();
-  /** @type {{ defaultScheduleTab: string, defaultScreen: string, idbUrl: string, sessionCaching: boolean, instantRequests: boolean } | null} */
+  /** @type {{ defaultScheduleTab: string, defaultScreen: string, idbUrl: string, sessionCaching: boolean, instantRequests: boolean, ignoreLimits: boolean } | null} */
   let data = null;
   let mostRecentActivityItems = null;
   let mostRecentActivityScheduleId = null;
@@ -175,7 +175,7 @@
                     observer.next(r);
                   });
                 });
-              } else if (activityListMatch && data?.instantRequests) {
+              } else if (activityListMatch) {
                 // keep track of fetched activity items
 
                 const reqObservable = Reflect.apply(...arguments);
@@ -188,6 +188,16 @@
                       log("instant requests", "got new activity list");
                       mostRecentActivityItems = r.body;
                       mostRecentActivityScheduleId = activityListMatch[1];
+                      if (data?.ignoreLimits) {
+                        // set canRegister to true
+                        r.body.forEach(session => {
+                          if (!session.canRegister) {
+                            session.canRegister = true;
+                            session.registeredStudentsCount = -Infinity;
+                            session.registeredStudentsCountOfRoomCap = -Infinity;
+                          }
+                        });
+                      }
                     }
                     observer.next(r);
                   });

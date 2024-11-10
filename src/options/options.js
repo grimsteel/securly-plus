@@ -4,6 +4,7 @@ const selectDefaultScreen = document.getElementById("select-default-screen");
 //const checkForceSearch = document.getElementById("check-force-search");
 const checkSessionCaching = document.getElementById("check-session-caching");
 const checkInstantRequests = document.getElementById("check-instant-requests");
+const checkIgnoreLimits = document.getElementById("check-ignore-limits");
 const toastSavedSuccesfully = document.getElementById("toast-saved-successfully");
 const btnSave = document.getElementById("btn-save");
 
@@ -13,14 +14,16 @@ chrome.storage.local.get({
   defaultScheduleTab: "todayplus",
   //forceSearch: true,
   sessionCaching: true,
-  instantRequests: true
-}).then(({ theme, defaultScreen, defaultScheduleTab, sessionCaching, instantRequests }) => {
+  instantRequests: true,
+  ignoreLimits: false
+}).then(({ theme, defaultScreen, defaultScheduleTab, sessionCaching, instantRequests, ignoreLimits }) => {
   selectTheme.value = theme;
   selectDefaultScreen.value = defaultScreen;
   selectDefaultScheduleTab.value = defaultScheduleTab;
   //checkForceSearch.checked = forceSearch;
   checkSessionCaching.checked = sessionCaching;
   checkInstantRequests.checked = instantRequests;
+  checkIgnoreLimits.checked = ignoreLimits;
 });
 
 btnSave.addEventListener("click", () => {
@@ -30,7 +33,8 @@ btnSave.addEventListener("click", () => {
     defaultScheduleTab: selectDefaultScheduleTab.value,
     //forceSearch: checkForceSearch.checked,
     sessionCaching: checkSessionCaching.checked,
-    instantRequests: checkInstantRequests.checked
+    instantRequests: checkInstantRequests.checked,
+    ignoreLimits: checkIgnoreLimits.checked
   });
 
   // show a success toast

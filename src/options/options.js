@@ -5,6 +5,8 @@ const selectDefaultScreen = document.getElementById("select-default-screen");
 const checkSessionCaching = document.getElementById("check-session-caching");
 const checkInstantRequests = document.getElementById("check-instant-requests");
 const checkIgnoreLimits = document.getElementById("check-ignore-limits");
+const checkBulkFlexing = document.getElementById("check-bulk-flexing");
+const checkStartDirectoryToday = document.getElementById("check-start-directory-today");
 const toastSavedSuccesfully = document.getElementById("toast-saved-successfully");
 const btnSave = document.getElementById("btn-save");
 
@@ -15,8 +17,10 @@ chrome.storage.local.get({
   //forceSearch: true,
   sessionCaching: true,
   instantRequests: true,
-  ignoreLimits: false
-}).then(({ theme, defaultScreen, defaultScheduleTab, sessionCaching, instantRequests, ignoreLimits }) => {
+  ignoreLimits: false,
+  bulkFlexing: true,
+  startDirectoryToday: false
+}).then(({ theme, defaultScreen, defaultScheduleTab, sessionCaching, instantRequests, ignoreLimits, bulkFlexing, startDirectoryToday }) => {
   selectTheme.value = theme;
   selectDefaultScreen.value = defaultScreen;
   selectDefaultScheduleTab.value = defaultScheduleTab;
@@ -24,6 +28,8 @@ chrome.storage.local.get({
   checkSessionCaching.checked = sessionCaching;
   checkInstantRequests.checked = instantRequests;
   checkIgnoreLimits.checked = ignoreLimits;
+  checkBulkFlexing.checked = bulkFlexing;
+  checkStartDirectoryToday.checked = startDirectoryToday;
 });
 
 btnSave.addEventListener("click", () => {
@@ -34,7 +40,9 @@ btnSave.addEventListener("click", () => {
     //forceSearch: checkForceSearch.checked,
     sessionCaching: checkSessionCaching.checked,
     instantRequests: checkInstantRequests.checked,
-    ignoreLimits: checkIgnoreLimits.checked
+    ignoreLimits: checkIgnoreLimits.checked,
+    bulkFlexing: checkBulkFlexing.checked,
+    startDirectoryToday: checkStartDirectoryToday.checked
   });
 
   // show a success toast

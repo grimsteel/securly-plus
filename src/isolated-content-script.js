@@ -7,6 +7,8 @@ async function sendPrefs() {
     sessionCaching: true,
     instantRequests: true,
     ignoreLimits: false,
+    bulkFlexing: true,
+    startDirectoryToday: false,
     idbUrl: chrome.runtime.getURL("idb.js")
   });
   window.postMessage({

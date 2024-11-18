@@ -62,6 +62,7 @@
   const scheduleRe = /^\/ftm\/district\/school\/[\w-]+\/flex-period\/schedule$/;
   const activityListRe = /^\/ftm\/district\/school\/flex-period\/([\w-]+)\/scheduled-activity$/;
   const registrationRe = /^\/ftm\/district\/school\/flex-period\/activity\/scheduled-activity\/scheduled-activity-scheduling\/([\w-]+)\/student\/registration$/;
+  const directoryScheduleRe = /^\/ftm\/district\/school\/flex-period\/activity\/([\w-]+)\/scheduled-activity$/;
 
   function getFunKey(paramObject, idx) {
     const matches = [...paramObject.matchAll(objectKvRe)];
@@ -75,17 +76,20 @@
     array = window.webpackChunkeduspire;
     webpackPush = array.push;
   }
-  let gotMainFile = false;
   let Observable = null;
+  let eventManager = null;
   let HttpResponse = null;
   // they do some weird "polyfilling" of Promise
   const Promise = window.Promise;
   /** @type {PromiseWithResolvers<import("idb").IDBPDatabase>} */
   const db = Promise.withResolvers();
-  /** @type {{ defaultScheduleTab: string, defaultScreen: string, idbUrl: string, sessionCaching: boolean, instantRequests: boolean, ignoreLimits: boolean } | null} */
+  /** @type {{ defaultScheduleTab: string, defaultScreen: string, idbUrl: string, sessionCaching: boolean, instantRequests: boolean, ignoreLimits: boolean, bulkFlexing: boolean, startDirectoryToday: boolean } | null} */
   let data = null;
   let mostRecentActivityItems = null;
   let mostRecentActivityScheduleId = null;
+  let currentDirectoryPageActivityId = null;
+  let tokenService = null;
+  let currentDirectoryPageSelected = new Map();
 
   const chunks = [
     // config chunk (app.config.ts)
@@ -122,22 +126,56 @@
         }
       }
     },
+    // auth factory service
+    {
+      keywords: ["Impesonate"], // W spelling
+      fns: {
+        0(result) {
+          result.prototype.isImpersonate = new Proxy(result.prototype.isImpersonate, {
+            apply(_target, thisArg, _params) {
+              tokenService = thisArg.authUserService;
+              return Reflect.apply(...arguments);
+            }
+          });
+        }
+      }
+    },
     // angular create component
     {
       keywords: ["g.co/ng/security"],
       fns: {
-        74(result) {
-          if (!data?.ignoreLimits) return;
-          
+        74(result) {          
           return new Proxy(result, {
             apply(_target, _thisArg, [item]) {
-              if (item?.selectors?.[0]?.[0] === "app-join-activity-modal") {
+              const selector = item?.selectors?.[0]?.[0];
+              if (selector === "app-join-activity-modal" && data?.ignoreLimits) {
                 const scheduleListComponent = item.dependencies[3];
                 scheduleListComponent.prototype.getDenominator = new Proxy(scheduleListComponent.prototype.getDenominator, {
                   apply(_target, _thisArg, [e]) {
                     if (e.registeredStudentsCount === "Full") {
                       return `${e.maxAttendees} (Will attempt to flex)`;
                     } else return Reflect.apply(...arguments);
+                  }
+                });
+              } else if (selector === "app-dates-and-registrations-modal" && data?.bulkFlexing) {
+                item.template = new Proxy(item.template, {
+                  apply(_target, _thisArg, [flag, params]) {
+                    const newId = params?.directoryScheduledActivity?.activity?.uuid;
+                    if (newId !== currentDirectoryPageActivityId || flag === 1) {
+                      currentDirectoryPageSelected = new Map();
+                      log("bulk flexing", "found new directory schedule modal");
+                    }
+                    currentDirectoryPageActivityId = newId;
+                    return Reflect.apply(...arguments);
+                  }
+                });
+              } else if (selector === "app-root" && data?.bulkFlexing) {
+                // get the event manager
+                item.dependencies[2].prototype.ngOnInit = new Proxy(item.dependencies[2].prototype.ngOnInit, {
+                  apply(_target, thisArg, _params) {
+                    log("bulk flexing", "got event manager");
+                    eventManager = thisArg.eventManager;
+                    return Reflect.apply(...arguments);
                   }
                 });
               }
@@ -165,6 +203,7 @@
 
               const registrationMatch = url.pathname.match(registrationRe);
               const activityListMatch = url.pathname.match(activityListRe);
+              const directoryScheduleMatch = url.pathname.match(directoryScheduleRe);
               if (registrationMatch && data?.instantRequests && request.method === "POST") {
                 // reflect registration in the cache immediately
                 const reqObservable = Reflect.apply(...arguments);
@@ -229,8 +268,8 @@
                 });
               } else if (url.pathname.match(scheduleRe) && data?.sessionCaching) {
                 // cache schedules
-                
-                return new Observable(observer => {                  
+
+                return new Observable(observer => {
                   observer.next({ type: 0 });
                   request.headers.init();
 
@@ -289,7 +328,7 @@
                       return r;
                     })
                     .catch(e => { console.warn(e); throw e });
-                  
+
                   // but also see if we have something cached
                   const cacheRequest = (async () => {
                     const tx = (await db.promise).transaction(["schedule-item-cache", "catchall-cache", "schedulings-cache"], "readonly");
@@ -317,7 +356,7 @@
 
                     return scheduleItems;
                   })();
-                  
+
                   Promise.any([fetchRequest, cacheRequest])
                     .then(items => {
                       observer.next(new HttpResponse({
@@ -331,6 +370,196 @@
                     })
                     .catch(e => console.warn(e));
                 });
+              } else if (directoryScheduleMatch) {
+                if (data?.startDirectoryToday) {
+                  // set startDate to today
+                  request.params.map.set("startDate", [new Date().toISOString().split("T")[0]]);
+                  const params = new URLSearchParams(request.params.map).toString();
+                  // update the full url as well
+                  request.urlWithParams = request.url + "?" + params;
+                }
+
+                if (data?.bulkFlexing) {
+                  // create bulk flexing controls
+
+                  const reqObservable = Reflect.apply(...arguments);
+
+                  // create select all checkboxes
+                  const modalBody = document.querySelector("app-dates-and-registrations-modal div.modal-body");
+                  if (modalBody) {
+                    if (!modalBody.querySelector("#__securly-plus-bulk-flex-footer")) {
+                      const footer = modalBody.appendChild(document.createElement("div"));
+                      footer.id = "__securly-plus-bulk-flex-footer";
+                      const row1 = footer.appendChild(document.createElement("div"));
+                      row1.classList.add("d-flex", "align-items-center", "justify-content-between");
+                      // select all checkbox
+                      const check = row1.appendChild(document.createElement("div"));
+                      check.classList.add("custom-control", "custom-checkbox");
+                      const input = check.appendChild(document.createElement("input"));
+                      input.type = "checkbox";
+                      input.id = `__securly-plus-bulk-flex-select-all`;
+                      input.classList.add("custom-control-input");
+                      const label = check.appendChild(document.createElement("label"));
+                      label.classList.add("custom-control-label");
+                      label.htmlFor = `__securly-plus-bulk-flex-select-all`;
+                      label.innerText = "Select all";
+                      input.addEventListener("change", () => {
+                        const allChecks = document.querySelectorAll(".__securly-plus-bulk-flex-check");
+                        if (allChecks.length === currentDirectoryPageSelected.size) {
+                          // clear
+                          currentDirectoryPageSelected.clear();
+                          allChecks.forEach(el => el.checked = false);
+                        } else {
+                          // select all
+                          allChecks.forEach(el => {
+                            el.checked = true;
+                            currentDirectoryPageSelected.set(el.dataset.id, el.dataset.date);
+                          });
+                        }
+                      });
+
+                      const button = row1.appendChild(document.createElement("button"));
+                      button.type = "button";
+                      button.classList.add("btn", "btn-outline-primary", "btn-padded", "btn-radius");
+                      button.innerText = "Apply";
+
+                      // exclude already flexed sessions check
+                      const checkExclude = footer.appendChild(document.createElement("div"));
+                      checkExclude.classList.add("custom-control", "custom-checkbox", "my-3");
+                      const inputExclude = checkExclude.appendChild(document.createElement("input"));
+                      inputExclude.type = "checkbox";
+                      inputExclude.id = `__securly-plus-bulk-flex-exclude`;
+                      inputExclude.classList.add("custom-control-input");
+                      const labelExclude = checkExclude.appendChild(document.createElement("label"));
+                      labelExclude.classList.add("custom-control-label");
+                      labelExclude.htmlFor = `__securly-plus-bulk-flex-exclude`;
+                      labelExclude.innerText = "Exclude days with existing flex requests";
+
+                      const statusText = footer.appendChild(document.createElement("p"));
+                      statusText.text = "0 items selected";
+                      modalBody.addEventListener("change", () => {
+                        statusText.innerText = `${currentDirectoryPageSelected.size} items selected`;
+                      });
+
+                      button.addEventListener("click", async () => {
+                        eventManager.broadcast({ name: "preloaderShow", content: true });
+
+                        const items = currentDirectoryPageSelected.entries();
+                        const total = currentDirectoryPageSelected.size;
+                        const headers = {
+                          "X-Requested-SchoolYear": JSON.parse(sessionStorage.getItem("schoolYearSettings")).schoolYear,
+                          "X-Requested-School": JSON.parse(sessionStorage.getItem("schoolUserAuthority")).uuid,
+                          "Authorization": `Bearer ${tokenService.getToken()}`
+                        };
+
+                        let existingSessions = new Set();
+
+                        // retrieve days with existing flex sessions
+                        if (inputExclude.checked) {
+                          const days = [...currentDirectoryPageSelected.values()];
+                          existingSessions = await fetch(`https://flexprod-api-k8s.flex.securly.com/ftm/district/school/${headers["X-Requested-School"]}/flex-period/schedule?startDate=${days[0]}&endDate=${days[days.length - 1]}`, {
+                            method: "GET",
+                            headers
+                          })
+                            .then(r => r.json())
+                            .then(r => {
+                              return new Set(r.flatMap(f => f.scheduledActivitySchedulings.map(s => s.scheduledDate)));
+                            });
+                        }
+
+                        console.log(existingSessions);
+
+                        // flex into each session, one at a time
+                        let success = 0;
+                        let skipped = 0;
+                        let count = 0;
+                        
+                        statusText.innerText = `Progress: 0 / ${total}`;
+                        for (let [sessionId, date] of items) {
+                          if (existingSessions.has(date)) {
+                            skipped++;
+                            statusText.innerText = `Progress: ${++count} / ${total}`;
+                            continue;
+                          }
+                          try {
+                            const response = await fetch(`https://flexprod-api-k8s.flex.securly.com/ftm/district/school/flex-period/activity/scheduled-activity/scheduled-activity-scheduling/${sessionId}/student/registration`, {
+                              method: "POST",
+                              body: "{}",
+                              headers
+                            });
+                            if (response.ok) {
+                              success++;
+                            } else {
+                              const text = await response.text();
+                              log("bulk flexing", `flexing failed for ${sessionId}: ${text}`);
+                            }
+                          } catch (e) {
+                            log("bulk flexing", `flexing failed for ${sessionId}: ${e}`);
+                          }
+                          statusText.innerText = `Progress: ${++count} / ${total}`;
+                        }
+                        statusText.innerText = `Successfully flexed into ${success} / ${total} sessions. ${skipped ? `(${skipped} skipped)` : ""}`;
+                        // TODO: show error details
+                        eventManager.broadcast({ name: "preloaderShow", content: false });
+                      });
+
+                      log("bulk flexing", "created bulk flex controls");
+                    }
+                  }
+
+                  // wrap the original observable
+                  return new Observable(observer => {
+                    reqObservable.subscribe(r => {
+                      observer.next(r);
+
+                      // 4 = successful resposne
+                      // make sure it's for the current activity
+                      if (r.type === 4 && directoryScheduleMatch[1] === currentDirectoryPageActivityId) {
+                        // figure out which item we're on
+                        const startIdx = (parseInt(url.searchParams.get("page")) - 1) * parseInt(url.searchParams.get("pageSize"));
+                        log("bulk flexing", "got more schedule itesm");
+                        // hacky way to wait for DOM to update
+                        setTimeout(() => {
+                          const items = document.querySelectorAll("app-dates-and-registrations-modal ul.general-list > .general-list-item");
+                          const now = Date.now();
+                          // add checkboxes to each item
+                          r.body.forEach((el, i) => {
+                            const scheduleItem = items[i + startIdx];
+
+                            const check = document.createElement("div");
+                            check.classList.add("custom-control", "custom-checkbox");
+                            check.style.marginTop = "-2px";
+                            const input = check.appendChild(document.createElement("input"));
+                            input.type = "checkbox";
+                            input.id = `__securly-plus-bulk-flex-${el.uuid}`;
+                            input.classList.add("custom-control-input", "__securly-plus-bulk-flex-check");
+                            input.dataset.id = el.uuid;
+                            input.dataset.date = el.scheduledDate;
+                            const label = check.appendChild(document.createElement("label"));
+                            label.classList.add("custom-control-label");
+                            label.htmlFor = `__securly-plus-bulk-flex-${el.uuid}`;
+
+                            // hide input if it's in the past
+                            if (Date.parse(el.scheduledDate + "T00:00:00") < now) {
+                              check.style.visibility = "hidden";
+                            } else {
+                              input.addEventListener("change", () => {
+                                // toggle
+                                if (!currentDirectoryPageSelected.has(el.uuid)) {
+                                  currentDirectoryPageSelected.set(el.uuid, el.scheduledDate);
+                                } else {
+                                  currentDirectoryPageSelected.delete(el.uuid);
+                                }
+                              });
+                            }
+
+                            scheduleItem.prepend(check);
+                          });
+                        }, 100);
+                      }
+                    });
+                  });
+                }
               }
               return Reflect.apply(...arguments);
             }
@@ -356,16 +585,12 @@
         return item => {
           // this is our custom push function
 
-          if (gotMainFile) return webpackPush(item);
-
           for (const [k, v] of Object.entries(item[1])) {
             // look for the config function
             const functionString = v.toString();
 
             for (const chunk of chunks) {
               if (chunk.keywords.every(keyword => functionString.includes(keyword))) {
-                // all 3 chunks are in the same js file
-                gotMainFile = true;
                 
                 // find out where the callback function is
                 const callbackMatch = functionString.match(callbackRe);

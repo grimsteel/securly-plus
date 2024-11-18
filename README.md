@@ -10,13 +10,17 @@ Dark mode and QoL improvements for [Securly Flex](https://flex.securly.com/)
 * Dark Mode
 * Customize the default schedule tab
 * Customize the default screen
+* Flex into certain sessions which display as full
+* Quickly flex into multiple sessions at once
 * **Incredible performance improvements**
+
+More info + screenshots: https://securly-plus.kameswar.com
 
 ## Installation
 
 <p>
-  <a href="https://addons.mozilla.org/en-US/firefox/addon/securly-plus/"><img src="https://extensionworkshop.com/assets/img/documentation/publish/get-the-addon-178x60px.dad84b42.png" alt="firefox addon" /></a>
-  <a href="https://chromewebstore.google.com/detail/securly-plus/cdnhkencehfaddihoojmappngkalgjfn"><img src="https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/UV4C4ybeBTsZt43U4xis.png" alt="firefox addon" /></a>
+  <a href="https://addons.mozilla.org/en-US/firefox/addon/securly-plus/"><img src="site/firefox-get-addon.png" alt="firefox addon" /></a>
+  <a href="https://chromewebstore.google.com/detail/securly-plus/cdnhkencehfaddihoojmappngkalgjfn"><img src="site/chrome-web-store.png" alt="chrome extension" /></a>
 </p>
 
 ### Manual Installation

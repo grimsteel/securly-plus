@@ -1,6 +1,6 @@
 <h1 style="display: flex; align-items: center;">
   <img src="src/icons/icon-32.png" alt="icon" />
-  Securly Plus
+  Securly+
 </h1>
 
 Dark mode and QoL improvements for [Securly Flex](https://flex.securly.com/)

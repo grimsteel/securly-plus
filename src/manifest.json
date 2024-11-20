@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Securly Plus",
+  "name": "Securly+",
   "description": "Dark mode and improvements for Securly Flex",
   "version": "__VERSION__",
   "host_permissions": ["*://flex.securly.com/*"],

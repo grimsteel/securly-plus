@@ -2,7 +2,7 @@
   // fancy log function
   function log(type, message) {
     console.log(
-      "%cSECURLY PLUS%c%s%c • %s",
+      "%cSECURLY+%c%s%c • %s",
       "background: #0d9488; color: #fef3c7; border-top-left-radius: 4px; border-bottom-left-radius: 4px; padding: 4px; font-weight: bold;",
       "background: #bef264; color: #052e16; padding: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px;",
       type,
@@ -11,7 +11,7 @@
     );
   }
 
-  log("general", "Securly Plus v__VERSION__ loaded");
+  log("general", "Securly+ v__VERSION__ loaded");
   
   window.postMessage({ type: "__securly-plus-get-prefs" });
   window.addEventListener("message", async e => {

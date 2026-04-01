@@ -95,6 +95,7 @@
     // config chunk (app.config.ts)
     {
       keywords: [defaultScheduleTab, defaultScreen],
+      name: "app.config.ts",
       fns: {
         0(result) {
           log("config patcher", "hooked config function");
@@ -119,7 +120,8 @@
     },
     // rxjs observable chunk (Observable.js)
     {
-      keywords: ["_isScalar"],
+      keywords: [/*"_isScalar"*/, "_trySubscribe", "lift", "pipe"],
+      name: "rxjs observable",
       fns: {
         0(result) {
           Observable = result;
@@ -129,6 +131,7 @@
     // auth factory service
     {
       keywords: ["Impesonate"], // W spelling
+      name: "auth-factory.service.ts",
       fns: {
         0(result) {
           result.prototype.isImpersonate = new Proxy(result.prototype.isImpersonate, {
@@ -143,6 +146,7 @@
     // angular create component
     {
       keywords: ["g.co/ng/security"],
+      name: "angular component",
       fns: {
         74(result) {          
           return new Proxy(result, {
@@ -150,6 +154,7 @@
               const selector = item?.selectors?.[0]?.[0];
               if (selector === "app-join-activity-modal" && data?.ignoreLimits) {
                 const scheduleListComponent = item.dependencies[3];
+                console.log(scheduleListComponent);
                 scheduleListComponent.prototype.getDenominator = new Proxy(scheduleListComponent.prototype.getDenominator, {
                   apply(_target, _thisArg, [e]) {
                     if (e.registeredStudentsCount === "Full") {
@@ -188,11 +193,12 @@
     // angular http chunk (http.mjs)
     {
       keywords: ["maybeSetNormalizedName"],
+      name: "angular http",
       fns: {
         4(result) {
           HttpResponse = result;
         },
-        0(result) {
+        6(result) {
           log("general", "hooked XHR Backend");
 
           // get a reference to the XHR backend
@@ -253,12 +259,13 @@
                       mostRecentActivityItems = r.body;
                       mostRecentActivityScheduleId = activityListMatch[1];
                       if (data?.ignoreLimits) {
-                        // set canRegister to true
+                        // set canRegister to true if maxAttendees < 10
                         r.body.forEach(session => {
-                          if (!session.canRegister) {
+                          if (!session.canRegister && session.maxAttendees < 10) {
                             session.canRegister = true;
-                            session.registeredStudentsCount = "Full";
-                            session.registeredStudentsCountOfRoomCap = "Full";
+                            session.maxAttendees = 10;
+                            //session.registeredStudentsCount = "Full";
+                            //session.registeredStudentsCountOfRoomCap = "Full";
                           }
                         });
                       }
@@ -332,12 +339,14 @@
                   // but also see if we have something cached
                   const cacheRequest = (async () => {
                     const tx = (await db.promise).transaction(["schedule-item-cache", "catchall-cache", "schedulings-cache"], "readonly");
-                    const scheduleItems = await tx.objectStore("schedule-item-cache").getAll();
+                    const scheduleItems = (await tx.objectStore("schedule-item-cache").getAll()).filter(s => Date.parse(s.endDate) >= endTime);
                     // force a fetch
                     if (scheduleItems.length === 0) {
                       console.log("no cache available");
                       throw new Error("no cache available");
                     }
+
+                    let hasCatchalls = false;
 
                     for (const item of scheduleItems) {
                       const range = IDBKeyRange.bound(
@@ -346,11 +355,13 @@
                       );
                       const catchalls = await tx.objectStore("catchall-cache").getAll(range);
                       const schedulings = await tx.objectStore("schedulings-cache").getAll(range);
-                      // if we have no catchall items, force a fetch
-                      if (catchalls.length === 0) throw new Error("no cache available");
+                      if (catchalls.length > 0) hasCatchalls = true;
                       item.catchallCollection = catchalls;
                       item.scheduledActivitySchedulings = schedulings;
                     }
+
+                    // if we have no catchall items, force a fetch (fetching somethign is needed, fetching a non catchall is actually fast)
+                    if (!hasCatchalls) throw new Error("no cache available");
 
                     log("session caching", `returned cached schedule items from ${url.searchParams.get("startDate")} to ${url.searchParams.get("endDate")}`);
 
@@ -467,8 +478,6 @@
                             });
                         }
 
-                        console.log(existingSessions);
-
                         // flex into each session, one at a time
                         let success = 0;
                         let skipped = 0;
@@ -568,7 +577,8 @@
       }
     }
   ];
-  
+  let patchedCount = 0;
+  let total = chunks.map(a => Object.keys(a.fns).length).reduce((acc, prev) => acc + prev, 0);
   window.webpackChunkeduspire = new Proxy(array, {
     set(_target, prop, value) {
       // webpack will try to set the "push" function to its own push hook. intercept this
@@ -617,6 +627,7 @@
                             const result = origXFunction();
                             if (!hasHooked) {
                               hasHooked = true;
+                              log("webpatcher", `patched ${chunk.name} (${(++patchedCount)}/${total})`);
 
                               const overrideResult = callback(result);
                               if (overrideResult) overriddenResult = overrideResult;

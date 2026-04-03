@@ -9,7 +9,8 @@ async function sendPrefs() {
     ignoreLimits: false,
     bulkFlexing: true,
     startDirectoryToday: false,
-    idbUrl: chrome.runtime.getURL("idb.js")
+    idbUrl: chrome.runtime.getURL("idb.js"),
+    sourcemap: {}
   });
   window.postMessage({
     ...prefs,
@@ -31,4 +32,5 @@ async function sendPrefs() {
 sendPrefs();
 window.addEventListener("message", e => {
   if (e.data.type === "__securly-plus-get-prefs") sendPrefs();
+  
 });

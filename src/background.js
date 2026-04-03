@@ -79,6 +79,9 @@ async function refreshSourceMap(filename) {
     },
     AuthFactoryService: {
       source: "/auth-factory.service.ts"
+    },
+    HttpResponse: {
+      source: "/http.mjs"
     }
   };
 

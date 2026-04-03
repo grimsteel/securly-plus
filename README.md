@@ -35,6 +35,6 @@ Built extension packages are on the [`Releases`](https://github.com/grimsteel/se
 
 There are some minor manifest differences between Chromium-based browsers and Firefox.
 
-The `build.sh` script will generate the two manifests and copy all of the other files into the `build/chrome` and `build/firefox` directories. (requires `bash` and `jq` to run)
+The `build.sh` script will generate the two manifests and copy all of the other files into the `build/chrome` and `build/firefox` directories. (requires `bash` and `jq` to run).
 
-You don't need to install the NPM dependencies unless you want better IDE type checking.
+`npm install` must be run before the build script to install `esbuild`, `idb`, and `@jridgewell/trace-mapping`.

@@ -3,7 +3,9 @@
   "version": "4.0",
   "private": true,
   "devDependencies": {
+    "@jridgewell/trace-mapping": "^0.3.31",
     "@types/chrome": "^0.0.270",
+    "esbuild": "^0.27.5",
     "idb": "^8.0.0"
   }
 }

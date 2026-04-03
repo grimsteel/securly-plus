@@ -16,13 +16,21 @@ for target in ${targets[@]}; do
   
   # copy normal files
   cp -r src/!(manifest*.json) build/$target/
+  cp node_modules/idb/build/index.js build/$target/idb.js
+  
+  node_modules/.bin/esbuild src/background.js \
+      --bundle \
+      --outfile=build/$target/background.js \
+      --format=iife \
+      --target=es2020 \
+      --platform=browser
 
   # merge manifests
   jq -s '.[0] * .[1]' src/manifest.json src/manifest.$target.json > build/$target/manifest.json
 
   pushd build/$target/ > /dev/null
   # handle  $$VERSION$$
-   sed -i "s/__VERSION__/$version/g" $(find . -type f)
+  sed -i "s/__VERSION__/$version/g" $(find . -type f)
   
   zip -q -r ../$target.zip .
   popd > /dev/null

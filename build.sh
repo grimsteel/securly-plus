@@ -16,11 +16,10 @@ for target in ${targets[@]}; do
   
   # copy normal files
   cp -r src/!(manifest*.json) build/$target/
-  cp node_modules/idb/build/index.js build/$target/idb.js
   
-  node_modules/.bin/esbuild src/background.js \
+  node_modules/.bin/esbuild src/background.js src/content-script.js \
       --bundle \
-      --outfile=build/$target/background.js \
+      --outdir=build/$target/ \
       --format=iife \
       --target=es2020 \
       --platform=browser

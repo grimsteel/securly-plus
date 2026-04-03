@@ -3,13 +3,11 @@ async function sendPrefs() {
     theme: "auto",
     defaultScheduleTab: "todayplus",
     defaultScreen: "schedule",
-    //forceSearch: true,
     sessionCaching: true,
     instantRequests: true,
-    ignoreLimits: false,
+    ignoreLimits: true,
     bulkFlexing: true,
     startDirectoryToday: false,
-    idbUrl: chrome.runtime.getURL("idb.js"),
     sourcemap: {}
   });
   window.postMessage({

@@ -118,6 +118,25 @@
 
       <p class="form-text">Prevents you from having to scroll to select sessions for bulk flexing</p>
     </div>
+    
+    <h2 class="fs-3 mb-3 d-flex align-items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"    stroke="currentColor" width="20" height="20">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 9.75V10.5" />
+      </svg>
+      Advanced:
+    </h2>
+
+    <div class="mb-3">
+      <p class="form-text">
+        If Securly Flex updates, some features of Securly Plus may stop working until the extension can find the new code locations. This will re-scan the latest website files and update the internal "source mappings".<br>
+        <strong>Use this if you notice features breaking after a Securly Flex update.</strong>
+      </p>
+      <button type="button" id="btn-refresh-sourcemap" class="btn btn-outline-warning">
+        Refresh Source Mappings
+      </button>
+    </div>
+    
+    <hr/>
 
     <button type="button" id="btn-save" class="btn btn-success">Save</button>
 
@@ -147,6 +166,15 @@
         <div class="d-flex">
           <div class="toast-body">
             Saved settings successfully!
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-0 end-0 position-fixed p-3">
+      <div class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true" id="toast-refreshed-sourcemap">
+        <div class="d-flex">
+          <div class="toast-body">
+            <span id="sourcemap-refreshed-text">Source mappings refreshed:</span> (<span id="sourcemap-found-count">0</span>/<span id="sourcemap-total-count">0</span> items found)
           </div>
         </div>
       </div>

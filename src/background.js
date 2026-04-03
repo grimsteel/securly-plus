@@ -111,7 +111,9 @@ async function refreshSourceMap(filename) {
   }
 
   // print how many we were able to find
-  log("sourcemap decode", `parsed source map. found ${Object.keys(foundNames).length}/${Object.keys(relevantNames).length}`);
+  const numFound = Object.keys(foundNames).length;
+  const numTotal = Object.keys(relevantNames).length;
+  log("sourcemap decode", `parsed source map. found ${numFound}/${numTotal}`);
 
   // store in cache
   await chrome.storage.local.set({
@@ -121,17 +123,23 @@ async function refreshSourceMap(filename) {
       name: filename
     }
   });
+  
+  return {
+    found: numFound,
+    total: numTotal,
+    filename
+  };
 }
 
-async function tryRefreshSourceMap() {
+async function tryRefreshSourceMap(force) {
   const sourceNames = await fetchSourceNames();
   const cachedMap = await chrome.storage.local.get("sourcemap");
   // check if the file name changed (need to refetch)
-  if (cachedMap?.sourcemap?.name === sourceNames.main) {
+  if (!force && cachedMap?.sourcemap?.name === sourceNames.main) {
     log("sourcemap decode", "no refresh needed");
-    return;
+    return null;
   }
-  await refreshSourceMap(sourceNames.main);
+  return await refreshSourceMap(sourceNames.main);
 }
 
 chrome.action.onClicked.addListener(() => {
@@ -145,4 +153,14 @@ chrome.runtime.onInstalled.addListener(({ reason }) => {
 
   // trigger refresh on each install
   tryRefreshSourceMap();
+});
+
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message.type === "refresh-source-map"){
+    // force a refresh
+    tryRefreshSourceMap(true)
+      .then(r => sendResponse({ ...r, success: true }))
+      .catch(e => sendResponse({ error: e, success: false }));
+    return true; // async
+  }
 });
